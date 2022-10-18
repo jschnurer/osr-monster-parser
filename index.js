@@ -1,43 +1,44 @@
 const fs = require("fs");
+const yargs = require("yargs");
 
-let inputFile = "";
-let sourceName = "";
-let system = "";
-let outputFile = ".\\output.json";
-let processSwordsAndWizardry = false;
+yargs
+  .usage('Usage: --input "inputFile" --system "gameName" --source "bookName" --output "outputFile" --processSW false --appendStats false')
+  .option('input', {
+    describe: 'Path to input text file.',
+    type: 'string',
+    demandOption: true,
+  }).option('system', {
+    describe: 'Name of the game to be included in parsed monsters.',
+    type: 'string',
+    demandOption: true,
+  }).option('source', {
+    describe: 'Name of the sourcebook the monsters are from to be included in parsed monsters.',
+    type: 'string',
+    demandOption: true,
+  }).option('output', {
+    describe: 'Path to output text file. (Default = .\\output.txt)',
+    type: 'string',
+    demandOption: false,
+  }).option('processSW', {
+    describe: 'Enables extra Swords & Wizardry monster parsing (see readme).',
+    type: 'boolean',
+    demandOption: false,
+  }).option('appendStats', {
+    describe: 'If true, an extra stats object is appended to the monster object that includes "hd" and "ac".',
+    type: 'boolean',
+    demandOption: false,
+  }).argv;
 
-process.argv.forEach((val, ix) => {
-  switch (ix) {
-    case 0:
-    case 1:
-      break;
-    case 2: { inputFile = val; break; }
-    case 3: { system = val; break; }
-    case 4: { sourceName = val; break; }
-    case 5: { outputFile = val; break; }
-    case 6: { processSwordsAndWizardry = val.toLowerCase() === "true"; break; }
-    default: break;
-  }
-});
+const {
+  input,
+  system,
+  source,
+  output,
+  processSW,
+  appendStats,
+} = yargs.argv;
 
-const tryInstead = "Try `node .\\index.js filename \"systemName\" \"sourceName\" \"outFile\" false` instead."
-
-if (!inputFile) {
-  console.log(`An input file must be provided. ${tryInstead}`);
-  process.exit();
-}
-
-if (!system) {
-  console.log(`A system name must be provided. ${tryInstead}`);
-  process.exit();
-}
-
-if (!sourceName) {
-  console.log(`An source name must be provided. ${tryInstead}`);
-  process.exit();
-}
-
-processInput(inputFile, outputFile, sourceName);
+processInput(input, output, source);
 
 function processInput(inputFile, outputFile, source) {
   let inputLines = processInputText(fs.readFileSync(inputFile, "utf8"));
@@ -66,10 +67,13 @@ function processInput(inputFile, outputFile, source) {
     delete x.content;
     x.system = system;
     x.source = source;
-    x.stats = {
-      hd: x.hd,
-      ac: x.ac,
-    };
+
+    if (appendStats) {
+      x.stats = {
+        hd: x.hd,
+        ac: x.ac,
+      };
+    }
   });
 
   fs.writeFileSync(outputFile, JSON.stringify(monsters, null, 2), "utf8");
@@ -109,7 +113,7 @@ function parseLinesToMonsters(lines) {
 
   let monsterList = [];
 
-  let textOverride = processSwordsAndWizardry && name.match(/^ravager/i)
+  let textOverride = processSW && name.match(/^ravager/i)
     ? combineLinesFromTo(getRavagerText(), 0, getRavagerText().length)
     : undefined;
 
@@ -128,7 +132,7 @@ function parseLinesToMonsters(lines) {
         && name.match(/^dragon, (.+?)$/i) !== null;
 
       hds.forEach((hd, ix) => {
-        if (processSwordsAndWizardry && isDragon) {
+        if (processSW && isDragon) {
           getDragonTypes().forEach(dragonType => {
             const dragon = {
               name: name + `, ${dragonType.name} (${hd} HD)`,

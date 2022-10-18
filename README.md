@@ -2,13 +2,24 @@
 This node app reads text in from a file, searches it, and parses out OSR monster statblocks in JSON format.
 
 # Running
-Execute `node .\index.js inputfile systemname sourcename outputfile processSwordsAndWizardry`.
+Usage: --input "inputFile" --system "gameName" --source "bookName" --output
+"outputFile" --processSW false --appendStats false
 
-- `inputfile` the path to the text file to import
-- `systemname` the name of the game to put into the json output for each monster
-- `sourcename` the name of the sourcebook to put into the json output for each monster
-- `outputfile` (Optional) the file to output the json to. If not provided, ".\output.json" will be used.
-- `processSwordsAndWizardry` (Optional) true or false. If true, certain extra functionality will be used for Swords and Wizardry.
+```
+Options:
+  --help         Show help                                             [boolean]
+  --version      Show version number                                   [boolean]
+  --input        Path to input text file.                    [string] [required]
+  --system       Name of the game to be included in parsed monsters.
+                                                             [string] [required]
+  --source       Name of the sourcebook the monsters are from to be included in
+                 parsed monsters.                            [string] [required]
+  --output       Path to output text file. (Default = .\output.txt)     [string]
+  --processSW    Enables extra Swords & Wizardry monster parsing (see readme).
+                                                                       [boolean]
+  --appendStats  If true, an extra stats object is appended to the monster
+                 object that includes "hd" and "ac".                   [boolean]
+```
 
 # Input
 The app searches the text for any line that starts with "hit dice:". The line immediately before this is read in as the monster's name. Everything after that (until the next monster) is considered part of its statblock or description.
@@ -99,5 +110,5 @@ The titan ooze is a super mega awesome huge oozey dude. Bla bla bla.
 ]
 ```
 
-## Sworsd & Wizardry Extras
-If the input flag `processSwordsAndWizardry` is true, if the monster's name is "dragon turtle" or in the format "dragon, xxxx", its stats will be duplicated for each size category and age of dragon. If the monster's name starts with "ravager", it will also include some extra ravager text in the monster's description.
+## Swords & Wizardry Extras
+If the input flag `processSW` is true, if the monster's name is "dragon turtle" or in the format "dragon, xxxx", its stats will be duplicated for each size category and age of dragon. If the monster's name starts with "ravager", it will also include some extra ravager text in the monster's description.
